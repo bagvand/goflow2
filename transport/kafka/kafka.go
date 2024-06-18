@@ -102,7 +102,7 @@ func (d *KafkaDriver) Prepare() error {
 
 	flag.BoolVar(&d.kafkaHashing, "transport.kafka.hashing", false, "Enable partition hashing")
 
-	flag.IntVar(&d.kafkaMaxRequestSize, "transport.kafka.maxrequestsize", 104857600, "Kafka max request size")
+	flag.Int32Var(&d.kafkaMaxRequestSize, "transport.kafka.maxrequestsize", 104857600, "Kafka max request size")
 	flag.StringVar(&d.kafkaVersion, "transport.kafka.version", "2.8.0", "Kafka version")
 	flag.StringVar(&d.kafkaCompressionCodec, "transport.kafka.compression", "", "Kafka default compression")
 
