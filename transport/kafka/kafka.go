@@ -25,10 +25,13 @@ type KafkaDriver struct {
 	kafkaBrk            string
 	kafkaMaxMsgBytes    int
 	kafkaFlushBytes     int
+	kafkaFlushMessages  int
+	kafkaFlushMaxMessages int
 	kafkaFlushFrequency time.Duration
 
 	kafkaHashing          bool
 	kafkaVersion          string
+	kafkaMaxRequestSize   int
 	kafkaCompressionCodec string
 
 	producer sarama.AsyncProducer
@@ -93,10 +96,13 @@ func (d *KafkaDriver) Prepare() error {
 	flag.StringVar(&d.kafkaBrk, "transport.kafka.brokers", "127.0.0.1:9092,[::1]:9092", "Kafka brokers list separated by commas")
 	flag.IntVar(&d.kafkaMaxMsgBytes, "transport.kafka.maxmsgbytes", 1000000, "Kafka max message bytes")
 	flag.IntVar(&d.kafkaFlushBytes, "transport.kafka.flushbytes", int(sarama.MaxRequestSize), "Kafka flush bytes")
+	flag.IntVar(&d.kafkaFlushMessages, "transport.kafka.flushmessages", 0, "Kafka flush messages")
+	flag.IntVar(&d.kafkaFlushMaxMessages, "transport.kafka.flushmaxmessages", 0, "Kafka flush max messages")
 	flag.DurationVar(&d.kafkaFlushFrequency, "transport.kafka.flushfreq", time.Second*5, "Kafka flush frequency")
 
 	flag.BoolVar(&d.kafkaHashing, "transport.kafka.hashing", false, "Enable partition hashing")
 
+	flag.IntVar(&d.kafkaMaxRequestSize, "transport.kafka.maxrequestsize", 104857600, "Kafka max request size")
 	flag.StringVar(&d.kafkaVersion, "transport.kafka.version", "2.8.0", "Kafka version")
 	flag.StringVar(&d.kafkaCompressionCodec, "transport.kafka.compression", "", "Kafka default compression")
 
@@ -114,12 +120,15 @@ func (d *KafkaDriver) Init() error {
 	}
 
 	kafkaConfig := sarama.NewConfig()
+	sarama.MaxRequestSize = d.kafkaMaxRequestSize
 	kafkaConfig.Version = kafkaConfigVersion
 	kafkaConfig.Producer.Return.Successes = false
 	kafkaConfig.Producer.Return.Errors = true
 	kafkaConfig.Producer.MaxMessageBytes = d.kafkaMaxMsgBytes
 	kafkaConfig.Producer.Flush.Bytes = d.kafkaFlushBytes
 	kafkaConfig.Producer.Flush.Frequency = d.kafkaFlushFrequency
+	kafkaConfig.Producer.Flush.Messages = d.kafkaFlushMessages
+	kafkaConfig.Producer.Flush.MaxMessages = d.kafkaFlushMaxMessages
 	kafkaConfig.Producer.Partitioner = sarama.NewRoundRobinPartitioner
 
 	if d.kafkaCompressionCodec != "" {
