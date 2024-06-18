@@ -31,7 +31,7 @@ type KafkaDriver struct {
 
 	kafkaHashing          bool
 	kafkaVersion          string
-	kafkaMaxRequestSize   int32
+	kafkaMaxRequestSize   int
 	kafkaCompressionCodec string
 
 	producer sarama.AsyncProducer
@@ -102,7 +102,7 @@ func (d *KafkaDriver) Prepare() error {
 
 	flag.BoolVar(&d.kafkaHashing, "transport.kafka.hashing", false, "Enable partition hashing")
 
-	flag.Int32Var(&d.kafkaMaxRequestSize, "transport.kafka.maxrequestsize", 104857600, "Kafka max request size")
+	flag.IntVar(&d.kafkaMaxRequestSize, "transport.kafka.maxrequestsize", 104857600, "Kafka max request size")
 	flag.StringVar(&d.kafkaVersion, "transport.kafka.version", "2.8.0", "Kafka version")
 	flag.StringVar(&d.kafkaCompressionCodec, "transport.kafka.compression", "", "Kafka default compression")
 
@@ -120,7 +120,7 @@ func (d *KafkaDriver) Init() error {
 	}
 
 	kafkaConfig := sarama.NewConfig()
-	sarama.MaxRequestSize = d.kafkaMaxRequestSize
+	sarama.MaxRequestSize = int32(d.kafkaMaxRequestSize)
 	kafkaConfig.Version = kafkaConfigVersion
 	kafkaConfig.Producer.Return.Successes = false
 	kafkaConfig.Producer.Return.Errors = true
